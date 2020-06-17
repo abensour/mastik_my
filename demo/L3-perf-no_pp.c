@@ -103,44 +103,21 @@ int main(int ac, char **av) {
     if(ac>1 ){
         sample_time = atoi(av[1]);
     }
-    int nsets;
-    l3pp_t l3 = NULL;
-    
-    do {
-        
-        if (l3 != NULL)
-            l3_release(l3);
-        l3 = l3_prepare(NULL);
-        nsets = l3_getSets(l3);
-    } while (nsets != 8192);
+    int nsets = 8192;
     
     samples = sample_time / SLOT;
     int nmonitored = nsets/STEP;
-    for (int i = 0; i < nsets; i += STEP)
-        l3_monitor(l3, i);
-    l3_randomise(l3);
-    uint16_t *res = calloc(samples * SETS_PER_PAGE/STEP*EXPANSION, sizeof(uint16_t));
-    for (int i = 0; i < samples * SETS_PER_PAGE/STEP ; i+= 1)
-        res[EXPANDED_INDEX(i)] = 1;
-    // prime the cache
-    l3_probecount(l3, res);
-    
     // Squash the monitored sets into 32 pagesum sets
-    l3_compress_monitored_sets(l3);
-    // The actual attack
-    // l3_repeatedprobecount(l3, samples, res, SLOTCYCLES);
-    l3_probeperf(l3, res);
-    l3_bprobeperf(l3, res); //lishay: for debuging parpuse
-    
-    l3_repeatedprobeperf_compressed(l3, samples, res, SLOTCYCLES);
-    for (int j = 0; j < SETS_PER_PAGE/STEP; j++){
+    uint16_t *res = calloc(samples, sizeof(uint16_t));
+    for (int i = 0; i < samples; i+= 1)
+        res[i] = 0;
+
+    l3_repeatedprobeperf_compressed_no_pp(samples, res, SLOTCYCLES);
+
         for (int i = 0; i < samples; i++)
-            printf("%u ", res[ EXPANDED_INDEX(i*SETS_PER_PAGE/STEP+j)]);
+            printf("%u ", res[i]);
         putchar('\n');
-    }
-    
     
     free(res);
-    l3_release(l3);
 }
 

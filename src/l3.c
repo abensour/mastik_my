@@ -301,6 +301,25 @@ int bprobeperf(void *pp) {
     return probeperf(NEXTPTR(pp));
 }
 
+int probeperf_reg_pp(void *pp) {
+    if (pp == NULL)
+    return 0;
+    int rv = 0;
+    void *p = (void *)pp;
+    unsigned long long perf_llc_reads_start, perf_llc_reads_end;
+
+    read(perf_llc_reads_fd, &perf_llc_reads_start, sizeof(unsigned long long));
+//    read(perf_llc_reads_fd, &perf_llc_reads_end, sizeof(unsigned long long));
+
+    return perf_llc_reads_start;
+}
+
+int bprobeperf_reg_pp(void *pp) {
+    if (pp == NULL)
+    return 0;
+    return probeperf(NEXTPTR(pp));
+}
+
 int probets(void *pp) {
     if (pp == NULL)
         return 0;
@@ -658,8 +677,15 @@ void l3_probeperf(l3pp_t l3, uint16_t *results) {
     for (int i = 0; i < l3->nmonitored; i++)
     results[(GET_PLACE(l3->monitoredset[i]))]+=probeperf(l3->monitoredhead[i]);
 }
-
+void l3_probeperf_reg_pp(l3pp_t l3, uint16_t *results) {
+    for (int i = 0; i < l3->nmonitored; i++)
+    results[(GET_PLACE(l3->monitoredset[i]))]+=probeperf(l3->monitoredhead[i]);
+}
 void l3_bprobeperf(l3pp_t l3, uint16_t *results) {
+    for (int i = 0; i < l3->nmonitored; i++)
+    results[(GET_PLACE(l3->monitoredset[i]))]+= bprobeperf(l3->monitoredhead[i]);
+}
+void l3_bprobeperf_reg_pp(l3pp_t l3, uint16_t *results) {
     for (int i = 0; i < l3->nmonitored; i++)
     results[(GET_PLACE(l3->monitoredset[i]))]+= bprobeperf(l3->monitoredhead[i]);
 }
@@ -831,6 +857,26 @@ return nrecords;
         }
     }
 
+return nrecords;
+}
+
+int l3_repeatedprobeperf_compressed_no_pp(int nrecords, uint16_t *results, int slot) {
+    assert(results != NULL);
+    int len = SETS_TO_SAMPLE;
+    unsigned long long perf_llc_reads_start, perf_llc_reads_end;
+    uint64_t prev_time = rdtscp64();//current time in cpu ticks##
+    for (int i = 0; i < nrecords; i++) {//next timeslot place in result
+    read(perf_llc_reads_fd, &perf_llc_reads_start, sizeof(unsigned long long));
+
+        if (slot > 0) {
+            prev_time += slot;
+            slotwait(prev_time);
+        }
+
+    read(perf_llc_reads_fd, &perf_llc_reads_end, sizeof(unsigned long long));
+
+    results[i] = perf_llc_reads_end - perf_llc_reads_start;
+    }
 return nrecords;
 }
 
