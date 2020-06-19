@@ -69,7 +69,11 @@ int main(int ac, char **av) {
     char str[20];
     int sample_time=30000;
     int samples;
-    
+    int pid = 0;
+       if(ac>2){
+        pid = atoi(av[2]);
+    }
+    assert(pid != 0);
     // Yossi: open the perf counter
     // Source: https://elixir.free-electrons.com/linux/latest/source/samples/bpf/tracex6_user.c#L138
 #define SAMPLE_PERIOD  0x7fffffffffffffffULL
@@ -88,7 +92,7 @@ int main(int ac, char **av) {
      (PERF_COUNT_HW_CACHE_RESULT_MISS << 16)}; */
     
     //    perf_llc_reads_fd = sys_perf_event_open(&perf_event_attr, 0, -1, -1, 0);
-    perf_llc_reads_fd = syscall(__NR_perf_event_open, &attr_llc_miss, 0, -1, -1, 0);
+    perf_llc_reads_fd = syscall(__NR_perf_event_open, &attr_llc_miss, pid, -1, -1, 0);
     if (perf_llc_reads_fd < 0) {
         perror("Could not open the perf event");
         exit(1);
@@ -103,8 +107,9 @@ int main(int ac, char **av) {
     if(ac>1 ){
         sample_time = atoi(av[1]);
     }
+ 
     int nsets = 8192;
-    
+   
     samples = sample_time / SLOT;
     int nmonitored = nsets/STEP;
     // Squash the monitored sets into 32 pagesum sets
