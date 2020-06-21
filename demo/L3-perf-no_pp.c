@@ -73,7 +73,6 @@ int main(int ac, char **av) {
        if(ac>2){
         pid = atoi(av[2]);
     }
-    assert(pid != 0);
     // Yossi: open the perf counter
     // Source: https://elixir.free-electrons.com/linux/latest/source/samples/bpf/tracex6_user.c#L138
 #define SAMPLE_PERIOD  0x7fffffffffffffffULL
