@@ -78,6 +78,7 @@ int l3_repeatedprobe(l3pp_t l3, int nrecords, uint16_t *results, int slot);
 int l3_repeatedprobecount(l3pp_t l3, int nrecords, uint16_t *results, int slot);
 int l3_repeatedprobeperf(l3pp_t l3, int nrecords, uint16_t *results, int slot);
 int l3_repeatedprobeperf_compressed(l3pp_t l3, int nrecords, uint16_t *results, int slot);
+int l3_repeatedprobeperf_compressed_pp(l3pp_t l3, int nrecords, uint16_t *results, int slot);
 int l3_repeatedprobeperf_compressed_no_pp(int nrecords, uint16_t *results, int slot);
 int l3_repeatedprobets_compressed(l3pp_t l3, int nrecords, uint64_t *results, int slot);
 

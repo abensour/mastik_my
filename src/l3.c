@@ -250,11 +250,29 @@ int probeperf(void *pp) {
     read(perf_llc_reads_fd, &perf_llc_reads_end, sizeof(unsigned long long));	
     return perf_llc_reads_end - perf_llc_reads_start;	
 }	
+
+int probeperf_pp(void *pp) {	
+    if (pp == NULL)	
+    return 0;	
+    void *p = (void *)pp;
+    do {	
+        p = LNEXT(p);	
+    } while (p != (void *) pp);	
+    return 0;
+}	
+
 int bprobeperf(void *pp) {	
     if (pp == NULL)	
     return 0;	
     return probeperf(NEXTPTR(pp));	
 }	
+
+int bprobeperf_pp(void *pp) {	
+    if (pp == NULL)	
+    return 0;	
+    return probeperf_pp(NEXTPTR(pp));	
+}	
+
 int probets(void *pp) {	
     if (pp == NULL)	
         return 0;	
@@ -503,25 +521,7 @@ l3pp_t l3_prepare(l3info_t l3info) {
     	
 }	
 
-int l3_repeatedprobeperf_compressed_no_pp(int nrecords, uint16_t *results, int slot) {
-    assert(results != NULL);
-    int len = SETS_TO_SAMPLE;
-    unsigned long long perf_llc_reads_start, perf_llc_reads_end;
-    uint64_t prev_time = rdtscp64();//current time in cpu ticks##
-    for (int i = 0; i < nrecords; i++) {//next timeslot place in result
-    read(perf_llc_reads_fd, &perf_llc_reads_start, sizeof(unsigned long long));
 
-        if (slot > 0) {
-            prev_time += slot;
-            slotwait(prev_time);
-        }
-
-    read(perf_llc_reads_fd, &perf_llc_reads_end, sizeof(unsigned long long));
-
-    results[i] = perf_llc_reads_end - perf_llc_reads_start;
-    }
-return nrecords;
-}
 
 void l3_release(l3pp_t l3) {	
     munmap(l3->buffer, l3->l3info.bufsize);	
@@ -611,16 +611,19 @@ void l3_bprobeperf(l3pp_t l3, uint16_t *results) {
     for (int i = 0; i < l3->nmonitored; i++)	
     results[(GET_PLACE(l3->monitoredset[i]))]+= bprobeperf(l3->monitoredhead[i]);	
 }	
+//probe all cache sets and each time write the result
 void l3_probeperf_compressed(l3pp_t l3, uint16_t *results) {	
     for (int i = 0; i < L3_SETS_PER_PAGE / STEP; i++){	
       results[i] = probeperf(l3->monitoredhead_compressed[i]);	
     }	
 }	
+	
 void l3_bprobeperf_compressed(l3pp_t l3, uint16_t *results) {	
     for (int i = 0; i < L3_SETS_PER_PAGE / STEP; i++){	
       results[i] = bprobeperf(l3->monitoredhead_compressed[i]);	
     }	
 }	
+
 void l3_probets(l3pp_t l3, uint64_t *results) {	
     for (int i = 0; i < L3_SETS_PER_PAGE / STEP; i++){	
         results[i] = probets(l3->monitoredhead_compressed[i]);	
@@ -784,6 +787,7 @@ int l3_repeatedprobeperf_compressed(l3pp_t l3, int nrecords, uint16_t *results, 
         }	
         // Write the local results into the data structure	
         for (int j = 0; j < len; j++) {	
+            //write each ceche set result to its place 
             results[EXPANDED_INDEX(i*len +j)] = localResults[j];	
         }	
         	
@@ -794,7 +798,73 @@ int l3_repeatedprobeperf_compressed(l3pp_t l3, int nrecords, uint16_t *results, 
     }	
     return nrecords;	
 return nrecords;	
-}	
+}
+int l3_repeatedprobeperf_compressed_pp(l3pp_t l3, int nrecords, uint16_t *results, int slot) {	
+    assert(l3 != NULL);	
+    assert(results != NULL);	
+    if (nrecords == 0)	
+    return 0;	
+    int len = SETS_TO_SAMPLE;	
+    int even = 1;	
+    int missed = 0;	
+    uint64_t prev_time = rdtscp64();//current time in cpu ticks##	
+    uint16_t localResults[SETS_TO_SAMPLE];	
+    unsigned long long perf_llc_reads_start;
+    unsigned long long perf_llc_reads_end;
+    for (int i = 0; i < nrecords; i++) {//next timeslot place in result	
+        if (missed) {	
+            for (int j = 0; j < len; j++)	
+                localResults[j] = -1;	
+        } else {	
+           for (int j = 0; j < len; j++)	
+                localResults[j] = 0;	
+            if (even){	
+                //just prime the cache 
+                for (int i = 0; i < L3_SETS_PER_PAGE / STEP; i++){	
+                    localResults[i] = probeperf_pp(l3->monitoredhead_compressed[i]);	
+                }
+                read(perf_llc_reads_fd, &perf_llc_reads_start, sizeof(unsigned long long));	
+            }
+            else{
+            //just prime the cache 
+                for (int i = 0; i < L3_SETS_PER_PAGE / STEP; i++){	
+                    localResults[i] = bprobeperf_pp(l3->monitoredhead_compressed[i]);	
+                }	
+                read(perf_llc_reads_fd, &perf_llc_reads_start, sizeof(unsigned long long));	
+            }	
+            even = !even;	
+        }	
+        if (slot > 0) {	
+            prev_time += slot;	
+            missed = slotwait(prev_time);	
+        }
+        read(perf_llc_reads_fd, &perf_llc_reads_end, sizeof(unsigned long long));
+
+        // Write the local results into the data structure	
+        results[i] = perf_llc_reads_end - perf_llc_reads_start;
+    }	
+    return nrecords;	
+return nrecords;	
+}
+int l3_repeatedprobeperf_compressed_no_pp(int nrecords, uint16_t *results, int slot) {
+    assert(results != NULL);
+    int len = SETS_TO_SAMPLE;
+    unsigned long long perf_llc_reads_start, perf_llc_reads_end;
+    uint64_t prev_time = rdtscp64();//current time in cpu ticks##
+    for (int i = 0; i < nrecords; i++) {//next timeslot place in result
+    read(perf_llc_reads_fd, &perf_llc_reads_start, sizeof(unsigned long long));
+    if (slot > 0) {
+            prev_time += slot;
+            slotwait(prev_time);
+        }
+
+    read(perf_llc_reads_fd, &perf_llc_reads_end, sizeof(unsigned long long));
+
+    results[i] = perf_llc_reads_end - perf_llc_reads_start;
+    }
+return nrecords;
+}
+
 int l3_repeatedprobets(l3pp_t l3, int nrecords, uint64_t *results, int slot) {	
     assert(l3 != NULL);	
     assert(results != NULL);	
