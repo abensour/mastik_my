@@ -70,6 +70,7 @@ int main(int ac, char **av) {
     int sample_time=30000;
     int samples;
     int pid = 0;
+    int ret = system("grep chrome");
        if(ac>2){
         pid = atoi(av[2]);
         printf("pid is %d", pid);
