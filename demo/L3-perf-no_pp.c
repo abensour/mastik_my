@@ -71,9 +71,9 @@ int main(int ac, char **av) {
     int samples;
     int pid = 0;
        if(ac>2){
+        printf("pid is %d", pid);
         pid = atoi(av[2]);
     }
-    printf("pid is %d", pid);
     // Yossi: open the perf counter
     // Source: https://elixir.free-electrons.com/linux/latest/source/samples/bpf/tracex6_user.c#L138
 #define SAMPLE_PERIOD  0x7fffffffffffffffULL
