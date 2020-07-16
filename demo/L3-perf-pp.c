@@ -69,6 +69,14 @@ int main(int ac, char **av) {
     char str[20];
     int sample_time=30000;
     int samples;
+    int pid = 0;
+       if(ac>2){
+        pid = atoi(av[2]);
+        printf("pid is %d", pid);
+        }
+        else{
+            printf("no pid");
+        }
     
     // Yossi: open the perf counter
     // Source: https://elixir.free-electrons.com/linux/latest/source/samples/bpf/tracex6_user.c#L138
@@ -88,7 +96,7 @@ int main(int ac, char **av) {
      (PERF_COUNT_HW_CACHE_RESULT_MISS << 16)}; */
     
     //    perf_llc_reads_fd = sys_perf_event_open(&perf_event_attr, 0, -1, -1, 0);
-    perf_llc_reads_fd = syscall(__NR_perf_event_open, &attr_llc_miss, 0, -1, -1, 0);
+    perf_llc_reads_fd = syscall(__NR_perf_event_open, &attr_llc_miss,  pid, -1, -1, 0);
     if (perf_llc_reads_fd < 0) {
         perror("Could not open the perf event");
         exit(1);
