@@ -72,10 +72,6 @@ int main(int ac, char **av) {
     int pid = 0;
        if(ac>2){
         pid = atoi(av[2]);
-        printf("pid is %d", pid);
-        }
-        else{
-            printf("no pid");
         }
     
     // Yossi: open the perf counter
