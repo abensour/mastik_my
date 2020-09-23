@@ -161,7 +161,7 @@ static void fillL3Info(l3pp_t l3) {
         l3->l3info.bufsize = 10 * 1024 * 1024;	
     }	
 }	
-#if 1	
+#if 0	
 void printL3Info() {	
     struct l3info l3Info;	
     loadL3cpuidInfo(&l3Info);	
@@ -181,6 +181,11 @@ void printL3Info() {
     exit(0);	
 }	
 #endif	
+
+void printL3InfoLishay(l3pp_t l3){
+    printf("nmonitored            : %i\n", l3->nmonitored);	
+    printf("assochiativity           : %i\n", l3->l3info.associativity + 1);	
+}
 void *sethead(l3pp_t l3, int set) { //vlist_t list, int count, int offset) {	
     vlist_t list = l3->groups[set / l3->groupsize];	
     	
