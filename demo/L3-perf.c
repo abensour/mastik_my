@@ -62,6 +62,7 @@
 // comment the previous line and uncomment the following line to easily disable the index expansion
 //#define EXPANDED_INDEX(index) (index)
 #define EXPANDED_INDEX(index)  (((index) &0x1f ) | (((index )& ~0x1f)<<6))
+// first five digits or with the last digists
 
 
 
@@ -70,9 +71,9 @@ int main(int ac, char **av) {
     int sample_time=30000;
     int samples;
     
-    // Yossi: open the perf counter
+    // Yossi: open the perf counter -code wich use perf
     // Source: https://elixir.free-electrons.com/linux/latest/source/samples/bpf/tracex6_user.c#L138
-#define SAMPLE_PERIOD  0x7fffffffffffffffULL
+#define SAMPLE_PERIOD  0x7fffffffffffffffULL 
     struct perf_event_attr  attr_llc_miss = {
         //    .freq = 0,
         //    .sample_period = SAMPLE_PERIOD,
@@ -106,6 +107,7 @@ int main(int ac, char **av) {
     int nsets;
     l3pp_t l3 = NULL;
     
+    //prepare an array of t
     do {
         
         if (l3 != NULL)

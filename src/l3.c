@@ -150,7 +150,7 @@ static void fillL3Info(l3pp_t l3) {
     l3->l3info.associativity = l3->cpuidInfo.cacheInfo.associativity + 1;	
     if (l3->l3info.slices == 0) {	
         if (l3->l3info.setsperslice == 0)	
-        l3->l3info.setsperslice = L3_SETS_PER_SLICE;	
+            l3->l3info.setsperslice = L3_SETS_PER_SLICE;	
         l3->l3info.slices = (l3->cpuidInfo.cacheInfo.sets + 1)/ l3->l3info.setsperslice;	
     }	
     if (l3->l3info.setsperslice == 0)	
@@ -161,7 +161,7 @@ static void fillL3Info(l3pp_t l3) {
         l3->l3info.bufsize = 10 * 1024 * 1024;	
     }	
 }	
-#if 0	
+#if 1	
 void printL3Info() {	
     struct l3info l3Info;	
     loadL3cpuidInfo(&l3Info);	

@@ -118,6 +118,7 @@ int main(int ac, char **av) {
         nsets = l3_getSets(l3);
     } while (nsets != 8192);
     
+    printL3Info();
     samples = sample_time / SLOT;
     int nmonitored = nsets/STEP;
     for (int i = 0; i < nsets; i += STEP)
