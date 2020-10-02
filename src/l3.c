@@ -184,7 +184,7 @@ void printL3Info() {
 
 void printL3InfoLishay(l3pp_t l3){
     printf("nmonitored            : %i\n", l3->nmonitored);	
-    printf("assochiativity           : %i\n", l3->l3info.associativity + 1);	
+    printf("assochiativity           : %i\n", l3->l3info.associativity);	
 }
 void *sethead(l3pp_t l3, int set) { //vlist_t list, int count, int offset) {	
     vlist_t list = l3->groups[set / l3->groupsize];	
@@ -242,7 +242,7 @@ int bprobecount(void *pp) {
 }	
 // TODO: move this global variable somewhere else	
 int perf_llc_reads_fd;	
-int probeperf(void *pp) {	
+int probeperf(void *pp) {	//the set array
     if (pp == NULL)	
     return 0;	
     int rv = 0;	
@@ -494,7 +494,7 @@ l3pp_t l3_prepare(l3info_t l3info) {
 #endif	
     	
     if (buffer == MAP_FAILED) {	
-        bufsize = l3->l3info.bufsize;	
+        bufsize = l3->l3info.bufsize;	//10*2^20
         l3->groupsize = L3_SETS_PER_PAGE;	
         buffer = mmap(NULL, bufsize, PROT_READ|PROT_WRITE, MAP_ANON|MAP_PRIVATE, -1, 0);	
     }	
@@ -502,7 +502,7 @@ l3pp_t l3_prepare(l3info_t l3info) {
         free(l3);	
         return NULL;	
     }	
-    l3->buffer = buffer;	
+    l3->buffer = buffer;	//a null buffer 
     l3->l3info.bufsize = bufsize;	
     	
     // Create the cache map	
@@ -693,7 +693,7 @@ int l3_repeatedprobecount(l3pp_t l3, int nrecords, uint16_t *results, int slot) 
     if (nrecords == 0)	
     return 0;	
     	
-    int len = SETS_TO_SAMPLE;	
+    int len = SETS_TO_SAMPLE;	//whay this is wriiten in
     	
     int even = 1;	
     int missed = 0;	
@@ -715,12 +715,11 @@ int l3_repeatedprobecount(l3pp_t l3, int nrecords, uint16_t *results, int slot) 
                 l3_bprobecount(l3, localResults);	
             even = !even;	
         }	
-        	
+        //what is writen	
         // Write the local results into the data structure	
         for (int j = 0; j < len; j++) {	
             results[EXPANDED_INDEX(i*len +j)] = localResults[j];	
         }	
-        	
         if (slot > 0) {	
             prev_time += slot;	
             missed = slotwait(prev_time);	
@@ -767,7 +766,7 @@ return nrecords;
     }	
 return nrecords;	
 }	
-int l3_repeatedprobeperf_compressed(l3pp_t l3, int nrecords, uint16_t *results, int slot) {	
+int   l3_repeatedprobeperf_compressed(l3pp_t l3, int nrecords, uint16_t *results, int slot) {	
     assert(l3 != NULL);	
     assert(results != NULL);	
     if (nrecords == 0)	

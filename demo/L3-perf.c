@@ -121,9 +121,7 @@ int main(int ac, char **av) {
     for (int i = 0; i < nsets; i += STEP)
         l3_monitor(l3, i);
     l3_randomise(l3);
-    //lishay addition
-    printf("cache slices %d, cache sets", l3_getSlices(l3), l3_getSets(l3));
-    //end lishay addition 
+
     //                            samples*64/(2*64) = samples/2
     uint16_t *res = calloc(samples * SETS_PER_PAGE/STEP*EXPANSION, sizeof(uint16_t));
     //                      samples*32
