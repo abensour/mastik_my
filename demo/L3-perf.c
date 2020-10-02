@@ -52,7 +52,7 @@
 //synchronize with l3.c
 #define STEP 2
 
-#define SLOTCYCLES (SLOT * 1000 * CPUMHZ)
+#define SLOTCYCLES (SLOT * 1000 * CPUMHZ) //each this amount of time there is a scan
 
 #define SETS_PER_PAGE 64
 
@@ -107,7 +107,7 @@ int main(int ac, char **av) {
     int nsets;
     l3pp_t l3 = NULL;
     
-    //prepare an array of t
+    //prepare an array 
     do {
         
         if (l3 != NULL)
@@ -121,7 +121,12 @@ int main(int ac, char **av) {
     for (int i = 0; i < nsets; i += STEP)
         l3_monitor(l3, i);
     l3_randomise(l3);
+    //lishay addition
+    printf("cache slices %d, cache sets", l3_getSlices(l3), l3_getSets(l3));
+    //end lishay addition 
+    //                            samples*64/(2*64) = samples/2
     uint16_t *res = calloc(samples * SETS_PER_PAGE/STEP*EXPANSION, sizeof(uint16_t));
+    //                      samples*32
     for (int i = 0; i < samples * SETS_PER_PAGE/STEP ; i+= 1)
         res[EXPANDED_INDEX(i)] = 1;
     // prime the cache
