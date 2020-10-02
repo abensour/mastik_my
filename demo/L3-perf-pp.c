@@ -126,7 +126,7 @@ int main(int ac, char **av) {
     l3_randomise(l3);
 
     //lishay addition
-    printf("cache slices %d, cache sets", l3_getSlices(l3), l3_getSets(l3));
+    printf("cache slices %d, cache sets %d", l3_getSlices(l3), l3_getSets(l3));
     //end lishay addition 
     uint16_t *res = calloc(samples, sizeof(uint16_t));
     for (int i = 0; i < samples; i+= 1)
